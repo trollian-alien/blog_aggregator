@@ -113,6 +113,13 @@ func handlerUsers(s *state, cmd command) error {
 	return nil
 }
 
+//agg command handler
+func handlerAgg(s *state, cmd command) error {
+	 feed, err := fetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
+	 fmt.Println(feed)
+	 return err
+}
+
 // struct of all commands
 type commands struct {
 	cmds map[string]func(*state, command) error
