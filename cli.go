@@ -1,13 +1,21 @@
 package main
 
 import (
+	"context"
+	"database/sql"
 	"errors"
 	"fmt"
+	"os"
+	"time"
+
+	"github.com/google/uuid"
 	"github.com/trollian-alien/blog_aggregator/internal/config"
+	"github.com/trollian-alien/blog_aggregator/internal/database"
 )
 
 // internal state handler
 type state struct{
+	db  *database.Queries
 	cfg *config.Config
 }
 
@@ -17,13 +25,62 @@ type command struct {
 	args []string
 }
 
-// logins!!!
+// user login handler
 func handlerLogin(s *state, cmd command) error {
 	if len(cmd.args) == 0 {
 		return errors.New("invalid command; no arguments")
 	}
 	username := cmd.args[0]
-	err := s.cfg.SetUser(username)
+
+	//check if user exists
+	_, err := s.db.GetUser(context.Background(), username)
+	if err == sql.ErrNoRows {
+		fmt.Println("User does not exist!")
+		os.Exit(1)
+	} else if err != nil {
+		return fmt.Errorf("shrodinger's user. error: %v", err)
+	}
+
+	//setting user
+	err = s.cfg.SetUser(username)
+	if err != nil {return err}
+	fmt.Printf("User %v set\n", username)
+	return nil
+}
+
+// user registration handler
+func handlerRegister(s *state, cmd command) error {
+	//mandatory command check
+	if len(cmd.args) == 0 {
+		return errors.New("invalid command; no arguments")
+	}
+	username := cmd.args[0]
+
+	//check if user exists
+	_, err := s.db.GetUser(context.Background(), username)
+	if err == nil {
+		fmt.Println("User already exists!")
+		os.Exit(1)
+	} else if err != sql.ErrNoRows {
+		return fmt.Errorf("shrodinger's user. error: %v", err)
+	}
+
+	//user creation
+	user, err := s.db.CreateUser(context.Background(), database.CreateUserParams{
+			ID: uuid.New(),
+			CreatedAt: time.Now().UTC(),
+			UpdatedAt: time.Now().UTC(),
+			Name: username,
+	})
+	if err != nil {return err}
+	fmt.Println("User created! User:")
+	fmt.Printf("ID: %v\n", user.ID)
+	fmt.Printf("Name: %v\n", user.Name)
+	fmt.Printf("CreatedAt: %v\n", user.CreatedAt)
+	fmt.Printf("UpdatedAt: %v\n", user.UpdatedAt)
+
+	//setting user
+	err = s.cfg.SetUser(username)
 	if err != nil {return err}
 	fmt.Printf("User %v set\n", username)
 	return nil

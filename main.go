@@ -1,22 +1,29 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
+	_ "github.com/lib/pq"
 	"github.com/trollian-alien/blog_aggregator/internal/config"
+	"github.com/trollian-alien/blog_aggregator/internal/database"
 )
 
 func main() {
 	c, err := config.Read()
 	if err != nil {fmt.Printf("%v", err)}
-	s := &state{cfg: &c}
+	db, err := sql.Open("postgres", c.DbURL)
+	dbQueries := database.New(db)
+	if err != nil {fmt.Printf("%v", err)}
+	s := &state{cfg: &c, db: dbQueries}
 
 	//setting up the commands
 	mainCommands := &commands{cmds: make(map[string]func(*state, command) error)}
 	mainCommands.register("login", handlerLogin)
-	userArgs := os.Args
+	mainCommands.register("register", handlerRegister)
 
 	//reading user commands
+	userArgs := os.Args
 	var cmd command
 	if len(userArgs) < 2 {
 		fmt.Println("No commands given")
