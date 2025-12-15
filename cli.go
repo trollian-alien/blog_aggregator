@@ -86,6 +86,33 @@ func handlerRegister(s *state, cmd command) error {
 	return nil
 }
 
+//reset is a dangerous command that deletes all users. enjoy!
+func handlerReset(s* state, cmd command) error {
+	//this command ignores arguments
+	err := s.db.DeleteAllUsers(context.Background())
+	if err != nil {
+		return fmt.Errorf("deletion problems?! %v", err)
+	}
+	fmt.Println("Reset Succesful!")
+	return nil
+}
+
+//users command handler; gets all registered user names
+func handlerUsers(s *state, cmd command) error {
+	usernames, err := s.db.GetUsers(context.Background())
+	if err != nil {
+		return fmt.Errorf("can't list users: %v", err)
+	}
+	for _, username := range usernames {
+		if username == s.cfg.CurrentUserName {
+			fmt.Printf("* %v (current)\n", username)
+		} else {
+			fmt.Printf("* %v\n", username)
+		}
+	}
+	return nil
+}
+
 // struct of all commands
 type commands struct {
 	cmds map[string]func(*state, command) error

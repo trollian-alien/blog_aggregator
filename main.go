@@ -21,6 +21,8 @@ func main() {
 	mainCommands := &commands{cmds: make(map[string]func(*state, command) error)}
 	mainCommands.register("login", handlerLogin)
 	mainCommands.register("register", handlerRegister)
+	mainCommands.register("reset", handlerReset)
+	mainCommands.register("users", handlerUsers)
 
 	//reading user commands
 	userArgs := os.Args
