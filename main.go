@@ -26,6 +26,8 @@ func main() {
 	mainCommands.register("agg", handlerAgg)
 	mainCommands.register("addfeed", handlerAddfeed)
 	mainCommands.register("feeds", handlerFeeds)
+	mainCommands.register("follow", handlerFollow)
+	mainCommands.register("following", handlerFollowing)
 
 	//reading user commands
 	userArgs := os.Args
