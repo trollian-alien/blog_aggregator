@@ -120,6 +120,52 @@ func handlerAgg(s *state, cmd command) error {
 	 return err
 }
 
+//addfeed command handler
+func handlerAddfeed(s *state, cmd command) error {
+	//mandatory command check
+	if len(cmd.args) != 2 {
+		return errors.New("exactly two arguments expected, name and url respectively")
+	}
+	feedName := cmd.args[0]
+	feedURL := cmd.args[1]
+
+	username := s.cfg.CurrentUserName
+	userID, err := s.db.GetUserID(context.Background(), username)
+	if err != nil {
+		return fmt.Errorf("couldn't get your user ID. Error: %v", err)
+	}
+	feed, err := s.db.CreateFeed(context.Background(), database.CreateFeedParams{
+		ID        : uuid.New(),
+		CreatedAt : time.Now().UTC(),
+		UpdatedAt : time.Now().UTC(),
+		Name      : feedName,
+		Url       : feedURL,
+		UserID    : userID,
+	})
+	if err != nil {return err}
+
+	fmt.Println("RSS feed created! Feed:")
+	fmt.Printf("ID: %v\n", feed.ID)
+	fmt.Printf("Name: %v\n", feed.Name)
+	fmt.Printf("URL: %v\n", feed.Url)
+	fmt.Printf("CreatedAt: %v\n", feed.CreatedAt)
+	fmt.Printf("UpdatedAt: %v\n", feed.UpdatedAt)
+	return nil
+}
+
+//feeds command handler
+func handlerFeeds(s *state, cmd command) error {
+	feeds, err := s.db.GetFeeds(context.Background())
+	if err != nil {
+		return fmt.Errorf("can't fetch the feeds. Error: %v", err)
+	}
+	fmt.Println("Feeds:")
+	for _, feed := range feeds {
+		fmt.Println(feed)
+	}
+	return nil
+}
+
 // struct of all commands
 type commands struct {
 	cmds map[string]func(*state, command) error

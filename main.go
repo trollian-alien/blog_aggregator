@@ -24,6 +24,8 @@ func main() {
 	mainCommands.register("reset", handlerReset)
 	mainCommands.register("users", handlerUsers)
 	mainCommands.register("agg", handlerAgg)
+	mainCommands.register("addfeed", handlerAddfeed)
+	mainCommands.register("feeds", handlerFeeds)
 
 	//reading user commands
 	userArgs := os.Args
