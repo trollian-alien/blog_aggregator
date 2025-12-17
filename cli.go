@@ -115,9 +115,27 @@ func handlerUsers(s *state, cmd command) error {
 
 //agg command handler
 func handlerAgg(s *state, cmd command) error {
-	 feed, err := fetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
-	 fmt.Println(feed)
-	 return err
+	//mandatory command check
+	if len(cmd.args) == 0 {
+		return errors.New("invalid command; no arguments")
+	}
+	timeInterval, err := time.ParseDuration(cmd.args[0])
+	if err != nil {
+		fmt.Printf("Please enter a valid time duaration")
+		fmt.Printf("for instance 10s or 2m or 3h")
+		os.Exit(1)
+	}
+
+	fmt.Println("Collecting feeds every " + cmd.args[0])
+	for range time.Tick(timeInterval) {
+		err = scrapeFeeds(s)
+		if err != nil {
+			fmt.Println("Error encountered. Stopping now")
+			return err
+		}
+		fmt.Println("OK")
+	}
+	return nil
 }
 
 //addfeed command handler

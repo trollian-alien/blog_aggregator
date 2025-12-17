@@ -3,8 +3,11 @@ package main
 import (
 	"context"
 	"encoding/xml"
+	"fmt"
 	"html"
 	"net/http"
+	"github.com/google/uuid"
+	"github.com/trollian-alien/blog_aggregator/internal/database"
 )
 
 type RSSFeed struct {
@@ -48,4 +51,32 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 	}
 
 	return feed, nil
+}
+
+func scrapeFeeds(s *state) error {
+	nextFeed, err := s.db.GetNextFeedToFetch(context.Background())
+	if err != nil {
+		return fmt.Errorf("no feeding for you! %v", err)
+	}
+	fmt.Println("Initializing feed fetch")
+	feedURL := nextFeed.Url
+	feedID := nextFeed.ID
+	fmt.Printf("fetching from %v\n", nextFeed.Name)
+	err = scrapeFeed(s.db, feedURL, feedID)
+	return err
+}
+
+func scrapeFeed(db *database.Queries, feedURL string, feedID uuid.UUID) error {
+	err := db.MarkFeedFetched(context.Background(), feedID)
+	if err != nil {
+		return fmt.Errorf("can't mark feed as fetched. %v", err)
+	}
+
+	feed, err := fetchFeed(context.Background(), feedURL)
+	if err != nil {return err}
+	fmt.Println("Feed item titles:")
+	for _, item := range feed.Channel.Item {
+		fmt.Println(item.Title)
+	}
+	return nil
 }
