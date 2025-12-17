@@ -27,6 +27,7 @@ func main() {
 	mainCommands.register("addfeed", handlerAddfeed)
 	mainCommands.register("feeds", handlerFeeds)
 	mainCommands.register("follow", handlerFollow)
+	mainCommands.register("unfollow", handlerUnfollow)
 	mainCommands.register("following", handlerFollowing)
 
 	//reading user commands

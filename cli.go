@@ -204,6 +204,25 @@ func handlerFollow(s* state, cmd command) error {
 	return err
 }
 
+//unfollow command handler
+func handlerUnfollow(s* state, cmd command) error {
+if len(cmd.args) == 0 {
+		fmt.Println("Please provide a feed url")
+		os.Exit(1)
+	}
+	feedURL := cmd.args[0]
+
+	err := s.db.DeleteFeedFollow(context.Background(), database.DeleteFeedFollowParams{
+		Name: s.cfg.CurrentUserName,
+		Url: feedURL,
+	})
+	if err != nil {
+		return fmt.Errorf("looks like you're stuck following that feed! Error: %v", err)
+	}
+	fmt.Println("Succesfully unfollowed feed!")
+	return nil
+}
+
 //following command handler
 func handlerFollowing(s* state, cmd command) error {
 	feeds, err := s.db.GetFeedFollowsForUser(context.Background(), s.cfg.CurrentUserName)
